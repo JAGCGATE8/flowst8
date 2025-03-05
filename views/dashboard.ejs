@@ -1,2 +1,17 @@
-<h1>Welcome <%= user.full_name %></h1>
+<h2>Welcome, <%= user.full_name %></h2>
+<a href="/campaigns/create">+ Create New Campaign</a>
+
+<h3>Your Campaigns</h3>
+<ul>
+    <% campaigns.forEach(campaign => { %>
+        <li>
+            <strong><%= campaign.title %></strong> - Goal: $<%= campaign.goal_amount %>
+            <p><%= campaign.description %></p>
+            <a href="https://www.facebook.com/sharer/sharer.php?u=http://localhost:3000/campaign/<%= campaign.campaign_id %>">Share on Facebook</a>
+            <a href="https://twitter.com/intent/tweet?text=<%= encodeURIComponent(campaign.ai_social_post) %>">Share on Twitter</a>
+        </li>
+    <% }) %>
+</ul>
+
 <a href="/logout">Logout</a>
+

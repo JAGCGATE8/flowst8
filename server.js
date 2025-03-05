@@ -4,7 +4,7 @@ const passport = require("passport");
 const db = require("./db");
 
 require("dotenv").config();
-require("./passport-config"); // Authentication logic
+require("./passport-config"); 
 
 const app = express();
 
@@ -15,6 +15,8 @@ app.use(session({ secret: "secret", resave: false, saveUninitialized: false }));
 app.use(passport.initialize());
 app.use(passport.session());
 
-app.use(require("./routes/authRoutes")); // Load authentication routes
+// Routes
+app.use(require("./routes/authRoutes"));
+app.use("/campaigns", require("./routes/campaignRoutes"));  // Add campaign routes
 
 app.listen(3000, () => console.log("Server running on http://localhost:3000"));
