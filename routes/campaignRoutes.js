@@ -33,4 +33,23 @@ router.post("/create", async (req, res) => {
     }
 });
 
+// ✅ NEW: Public Campaign Page Route
+router.get("/:campaign_id", (req, res) => {
+    const campaignId = req.params.campaign_id;
+
+    db.query("SELECT * FROM campaigns WHERE campaign_id = ?", [campaignId], (err, results) => {
+        if (err) {
+            console.error("Error fetching campaign:", err);
+            return res.status(500).send("Error fetching campaign");
+        }
+
+        if (results.length === 0) {
+            return res.status(404).send("Campaign not found");
+        }
+
+        const campaign = results[0];
+        res.render("campaign", { campaign });
+    });
+});
+
 module.exports = router;

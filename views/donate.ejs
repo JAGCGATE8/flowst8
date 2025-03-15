@@ -1,0 +1,20 @@
+<h2>Donate to this Campaign</h2>
+
+<form action="/donations/process" method="POST">
+    <input type="hidden" name="campaign_id" value="<%= campaign_id %>">
+    
+    <input type="text" name="donor_name" placeholder="Your Name" required />
+    <input type="email" name="donor_email" placeholder="Your Email" required />
+    <input type="number" name="amount" placeholder="Amount ($)" required />
+
+    <!-- Stripe Payment Button -->
+    <script src="https://checkout.stripe.com/checkout.js" 
+            class="stripe-button"
+            data-key="<%= stripePublicKey %>"
+            data-description="Support this campaign"
+            data-amount="500"
+            data-currency="usd">
+    </script>
+</form>
+
+<a href="/dashboard">Back to Dashboard</a>

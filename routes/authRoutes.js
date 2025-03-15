@@ -5,9 +5,17 @@ const db = require("../db");
 
 const router = express.Router();
 
+// Middleware to check if user is logged in
+function isAuthenticated(req, res, next) {
+  if (req.isAuthenticated()) {
+    return next();
+  }
+  res.redirect("/login");  // Redirect to login if not authenticated
+}
+
 // Render Register page (GET request)
 router.get("/register", (req, res) => {
-  res.render("register"); // This renders the 'register.ejs' view
+  res.render("register");
 });
 
 // Register Route (POST request)
@@ -25,7 +33,7 @@ router.post("/register", async (req, res) => {
 
 // Render Login page (GET request)
 router.get("/login", (req, res) => {
-  res.render("login"); // This renders the 'login.ejs' view
+  res.render("login");
 });
 
 // Login Route (POST request)
@@ -34,12 +42,25 @@ router.post("/login", passport.authenticate("local", {
   failureRedirect: "/login",
 }));
 
-// Logout
+// Logout Route
 router.get("/logout", (req, res) => {
   req.logout(() => {
     res.redirect("/login");
   });
 });
 
-module.exports = router;
+// ✅ Updated Dashboard Route (Fetch Campaigns)
+router.get("/dashboard", isAuthenticated, (req, res) => {
+  const userId = req.user.user_id;
 
+  db.query("SELECT * FROM campaigns WHERE fundraiser_id = ?", [userId], (err, campaigns) => {
+    if (err) {
+      console.error("Error fetching campaigns:", err);
+      return res.status(500).send("Error fetching campaigns");
+    }
+
+    res.render("dashboard", { user: req.user, campaigns: campaigns });
+  });
+});
+
+module.exports = router;

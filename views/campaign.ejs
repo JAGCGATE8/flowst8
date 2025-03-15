@@ -1,0 +1,27 @@
+<h2><%= campaign.title %></h2>
+<p><%= campaign.description %></p>
+
+<p><strong>Goal:</strong> $<%= campaign.goal_amount %></p>
+<p><strong>Raised:</strong> $<%= campaign.current_amount %></p>
+
+<progress value="<%= campaign.current_amount %>" max="<%= campaign.goal_amount %>"></progress>
+
+<h3>Support This Campaign</h3>
+<form action="/donations/process" method="POST">
+    <input type="hidden" name="campaign_id" value="<%= campaign.campaign_id %>">
+    
+    <input type="text" name="donor_name" placeholder="Your Name" required />
+    <input type="email" name="donor_email" placeholder="Your Email" required />
+    <input type="number" name="amount" placeholder="Amount ($)" required />
+
+    <!-- Stripe Payment Button -->
+    <script src="https://checkout.stripe.com/checkout.js" 
+            class="stripe-button"
+            data-key="your-publishable-stripe-key"
+            data-description="Support this campaign"
+            data-amount="500"
+            data-currency="usd">
+    </script>
+</form>
+
+<a href="/">Back to Home</a>

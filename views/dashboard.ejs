@@ -5,13 +5,17 @@
 <ul>
     <% campaigns.forEach(campaign => { %>
         <li>
-            <strong><%= campaign.title %></strong> - Goal: $<%= campaign.goal_amount %>
+            <strong><%= campaign.title %></strong> (ID: <%= campaign.campaign_id %>) <!-- Show campaign ID -->
             <p><%= campaign.description %></p>
-            <a href="https://www.facebook.com/sharer/sharer.php?u=http://localhost:3000/campaign/<%= campaign.campaign_id %>">Share on Facebook</a>
-            <a href="https://twitter.com/intent/tweet?text=<%= encodeURIComponent(campaign.ai_social_post) %>">Share on Twitter</a>
+            <p>Goal: $<%= campaign.goal_amount %> | Raised: $<%= campaign.total_donations %></p>
+            <progress value="<%= campaign.total_donations %>" max="<%= campaign.goal_amount %>"></progress>
+            
+            <!-- Link to Public Campaign Page -->
+            <a href="/campaign/<%= campaign.campaign_id %>">View Public Campaign</a>
+
+            <a href="/donations/<%= campaign.campaign_id %>">Donate Now</a>
         </li>
     <% }) %>
 </ul>
 
 <a href="/logout">Logout</a>
-
