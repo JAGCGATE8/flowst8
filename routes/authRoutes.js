@@ -1,24 +1,16 @@
 const express = require("express");
-const bcrypt = require("bcryptjs");
 const passport = require("passport");
 const db = require("../db");
+const bcrypt = require("bcryptjs");
 
 const router = express.Router();
 
-// Middleware to check if user is logged in
-function isAuthenticated(req, res, next) {
-  if (req.isAuthenticated()) {
-    return next();
-  }
-  res.redirect("/login");  // Redirect to login if not authenticated
-}
-
-// Render Register page (GET request)
+// ✅ Register Page (GET)
 router.get("/register", (req, res) => {
   res.render("register");
 });
 
-// Register Route (POST request)
+// ✅ Register (POST)
 router.post("/register", async (req, res) => {
   const { full_name, email, password } = req.body;
   const hashedPassword = await bcrypt.hash(password, 10);
@@ -31,36 +23,59 @@ router.post("/register", async (req, res) => {
   });
 });
 
-// Render Login page (GET request)
+// ✅ Login Page (GET)
 router.get("/login", (req, res) => {
   res.render("login");
 });
 
-// Login Route (POST request)
-router.post("/login", passport.authenticate("local", {
-  successRedirect: "/dashboard",
-  failureRedirect: "/login",
-}));
+// ✅ Login (POST) - Fix for Passport redirect issue
+router.post("/login", (req, res, next) => {
+  passport.authenticate("local", (err, user, info) => {
+    if (err) {
+      console.error("❌ Passport Authentication Error:", err);
+      return next(err);
+    }
+    if (!user) {
+      console.log("🔴 Authentication Failed:", info.message);
+      return res.redirect("/login");
+    }
 
-// Logout Route
+    req.logIn(user, (err) => {
+      if (err) {
+        console.error("❌ Login Error:", err);
+        return next(err);
+      }
+      console.log("🟢 User logged in successfully:", user);
+      return res.redirect("/dashboard"); // ✅ Force redirect to dashboard
+    });
+  })(req, res, next);
+});
+
+// ✅ Logout
 router.get("/logout", (req, res) => {
   req.logout(() => {
     res.redirect("/login");
   });
 });
 
-// ✅ Updated Dashboard Route (Fetch Campaigns)
-router.get("/dashboard", isAuthenticated, (req, res) => {
-  const userId = req.user.user_id;
+// ✅ Dashboard (Protected Route)
+router.get("/dashboard", async (req, res) => {
+  if (!req.isAuthenticated()) {
+      console.log("🔴 User not authenticated - Redirecting to login");
+      return res.redirect("/login");
+  }
 
-  db.query("SELECT * FROM campaigns WHERE fundraiser_id = ?", [userId], (err, campaigns) => {
-    if (err) {
-      console.error("Error fetching campaigns:", err);
-      return res.status(500).send("Error fetching campaigns");
-    }
+  console.log("🟢 Fetching campaigns for user:", req.user.user_id);
 
-    res.render("dashboard", { user: req.user, campaigns: campaigns });
-  });
+  try {
+      const [campaigns] = await db.query("SELECT * FROM campaigns WHERE fundraiser_id = ?", [req.user.user_id]);
+      console.log("🔵 Campaigns Retrieved:", campaigns.length);
+
+      res.render("dashboard", { user: req.user, campaigns });
+  } catch (err) {
+      console.error("❌ Error loading campaigns:", err);
+      res.send("Error loading campaigns");
+  }
 });
 
 module.exports = router;

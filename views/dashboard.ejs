@@ -5,14 +5,20 @@
 <ul>
     <% campaigns.forEach(campaign => { %>
         <li>
-            <strong><%= campaign.title %></strong> (ID: <%= campaign.campaign_id %>) <!-- Show campaign ID -->
-            <p><%= campaign.description %></p>
-            <p>Goal: $<%= campaign.goal_amount %> | Raised: $<%= campaign.total_donations %></p>
-            <progress value="<%= campaign.total_donations %>" max="<%= campaign.goal_amount %>"></progress>
-            
-            <!-- Link to Public Campaign Page -->
-            <a href="/campaign/<%= campaign.campaign_id %>">View Public Campaign</a>
+            <strong><%= campaign.title %></strong>
+            <p>Status: <%= campaign.status %></p>
 
+            <% if (campaign.status === "processing") { %>
+                <p>⏳ AI is generating content... Please refresh the page in a few seconds.</p>
+            <% } else if (campaign.status === "completed") { %>
+                <p><%= campaign.description %></p>
+                <p><strong>AI-Generated Social Media Post:</strong> "<%= campaign.ai_social_post %>"</p>
+                <p>Goal: $<%= campaign.goal_amount %> | Raised: $<%= campaign.total_donations %></p>
+            <% } else { %>
+                <p>⚠️ AI generation failed. Please try again.</p>
+            <% } %>
+
+            <a href="/campaign/<%= campaign.campaign_id %>">View Public Campaign</a>
             <a href="/donations/<%= campaign.campaign_id %>">Donate Now</a>
         </li>
     <% }) %>

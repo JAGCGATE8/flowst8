@@ -6,50 +6,54 @@ const router = express.Router();
 
 // Route to display "Create Campaign" page
 router.get("/create", (req, res) => {
-    if (!req.isAuthenticated()) return res.redirect("/login"); // Only allow logged-in users
+    if (!req.isAuthenticated()) return res.redirect("/login");
     res.render("createCampaign", { user: req.user });
 });
 
-// Route to handle campaign creation
+// ✅ Optimized Campaign Creation Route (Fix Delays)
 router.post("/create", async (req, res) => {
-    const { title, goal_amount } = req.body;
-    const fundraiser_id = req.user.user_id; // Get logged-in user's ID
+    const { title, goal_amount, keywords } = req.body;
+    const fundraiser_id = req.user.user_id;
 
     try {
-        // Generate AI content
-        const description = await generateCampaignText(title);
-        const ai_social_post = await generateSocialPost(title);
+        console.log("🟢 Creating campaign:", { title, goal_amount, keywords });
 
-        // Insert campaign into database
-        db.query("INSERT INTO campaigns (fundraiser_id, title, description, ai_social_post, goal_amount) VALUES (?, ?, ?, ?, ?)", 
-        [fundraiser_id, title, description, ai_social_post, goal_amount], 
-        (err, result) => {
-            if (err) return res.send("Error creating campaign");
-            res.redirect("/dashboard");
-        });
+        // ✅ Save campaign first with a "Processing" status
+        const [insertResult] = await db.query(
+            "INSERT INTO campaigns (fundraiser_id, title, description, ai_social_post, goal_amount, status) VALUES (?, ?, ?, ?, ?, ?)",
+            [fundraiser_id, title, "Generating description...", "Generating social post...", goal_amount, "processing"]
+        );
+        const campaignId = insertResult.insertId;
+        console.log("🟢 Campaign placeholder saved with ID:", campaignId);
 
+        // ✅ AI runs in the background (does not block request)
+        setTimeout(async () => {
+            try {
+                console.log("🔵 Generating AI content...");
+                const description = await generateCampaignText(title);
+                const ai_social_post = await generateSocialPost(title, keywords);
+
+                // ✅ Update campaign with AI content
+                await db.query(
+                    "UPDATE campaigns SET description = ?, ai_social_post = ?, status = ? WHERE campaign_id = ?",
+                    [description, ai_social_post, "completed", campaignId]
+                );
+                console.log("🟢 Campaign AI content updated successfully!");
+
+            } catch (error) {
+                console.error("❌ AI Generation Error:", error);
+                await db.query(
+                    "UPDATE campaigns SET status = ? WHERE campaign_id = ?",
+                    ["failed", campaignId]
+                );
+            }
+        }, 1000); // ✅ Small delay before starting AI request
+
+        res.redirect("/dashboard"); // ✅ Redirect immediately (AI runs in background)
     } catch (error) {
-        res.send("AI generation failed");
+        console.error("❌ Error Creating Campaign:", error);
+        res.send("Error creating campaign");
     }
-});
-
-// ✅ NEW: Public Campaign Page Route
-router.get("/:campaign_id", (req, res) => {
-    const campaignId = req.params.campaign_id;
-
-    db.query("SELECT * FROM campaigns WHERE campaign_id = ?", [campaignId], (err, results) => {
-        if (err) {
-            console.error("Error fetching campaign:", err);
-            return res.status(500).send("Error fetching campaign");
-        }
-
-        if (results.length === 0) {
-            return res.status(404).send("Campaign not found");
-        }
-
-        const campaign = results[0];
-        res.render("campaign", { campaign });
-    });
 });
 
 module.exports = router;
