@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Make a Pledge</title>
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+  <h2>Support a Campaign</h2>
+  <form action="/pledge" method="POST">
+    <label>Your Name:</label>
+    <input type="text" name="donor_name" required>
+
+    <label>Your Email:</label>
+    <input type="email" name="donor_email" required>
+
+    <label>Pledge Amount ($):</label>
+    <input type="number" name="amount" required min="1">
+
+    <button type="submit">Pledge Support</button>
+  </form>
+</body>
+</html>

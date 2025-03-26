@@ -1,33 +1,32 @@
-<%- include('partials/header', { title: 'Dashboard', user: user }) %>
-
-<div class="dashboard">
-  <h2>Welcome, <%= user.full_name %> 👋</h2>
-  <a href="/campaigns/create"><button class="primary-btn">+ Create New Campaign</button></a>
-
-  <h3>Your Campaigns</h3>
-  <% if (campaigns.length === 0) { %>
-    <p>No campaigns yet. Create one to start fundraising!</p>
-  <% } else { %>
-    <ul class="campaign-list">
-      <% campaigns.forEach(campaign => { %>
-        <li class="campaign-box">
-          <h4><%= campaign.title %></h4>
-          <p><%= campaign.description %></p>
-          <p><strong>Social Post:</strong> <em><%= campaign.ai_social_post %></em></p>
-          <p>Goal: $<%= campaign.goal_amount %> | Raised: $<%= campaign.total_donations %></p>
-
-          <div class="social-buttons">
-            <a href="https://www.facebook.com/sharer/sharer.php?u=https://your-ngrok-url.ngrok.io/share/<%= campaign.campaign_id %>" target="_blank">📘 Facebook</a>
-            <a href="https://twitter.com/intent/tweet?text=<%= encodeURIComponent(campaign.ai_social_post) %>&url=https://your-ngrok-url.ngrok.io/share/<%= campaign.campaign_id %>" target="_blank">🐦 Twitter</a>
-            <a href="https://www.instagram.com/?url=https://your-ngrok-url.ngrok.io/share/<%= campaign.campaign_id %>" target="_blank">📸 Instagram</a>
-            <a href="https://www.tiktok.com/upload?url=https://your-ngrok-url.ngrok.io/share/<%= campaign.campaign_id %>" target="_blank">🎵 TikTok</a>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Dashboard | Flowst8Funds</title>
+  <link rel="stylesheet" href="/styles.css" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
+</head>
+<body class="bg-light">
+  <div class="container mt-5">
+    <h2 class="mb-4">Welcome, <%= user.full_name %> 👋</h2>
+    <a href="/create" class="btn btn-primary mb-3">+ New Campaign</a>
+    
+    <% if (campaigns.length === 0) { %>
+      <p>You have no campaigns yet. Create one to get started!</p>
+    <% } else { %>
+      <div class="list-group">
+        <% campaigns.forEach(campaign => { %>
+          <div class="list-group-item mb-3">
+            <h5><%= campaign.title %></h5>
+            <p><%= campaign.description || "AI is still generating the campaign content..." %></p>
+            <p><strong>Goal:</strong> $<%= campaign.goal_amount %></p>
+            <p><strong>Generated Message:</strong> <%= campaign.ai_social_post %></p>
           </div>
-        </li>
-      <% }) %>
-    </ul>
-  <% } %>
+        <% }) %>
+      </div>
+    <% } %>
 
-  <a href="/logout"><button class="secondary-btn">Logout</button></a>
-</div>
-
-<%- include('partials/footer') %>
+    <a href="/logout" class="btn btn-secondary mt-4">Logout</a>
+  </div>
+</body>
+</html>
