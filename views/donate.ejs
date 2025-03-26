@@ -1,20 +1,23 @@
-<h2>Donate to this Campaign</h2>
+<%- include('partials/header', { title: 'Donate to ' + campaign.title, user }) %>
 
-<form action="/donations/process" method="POST">
-    <input type="hidden" name="campaign_id" value="<%= campaign_id %>">
-    
-    <input type="text" name="donor_name" placeholder="Your Name" required />
-    <input type="email" name="donor_email" placeholder="Your Email" required />
-    <input type="number" name="amount" placeholder="Amount ($)" required />
+<section class="form-section">
+  <div class="form-container">
+    <h2>Support "<%= campaign.title %>"</h2>
+    <p><%= campaign.description %></p>
 
-    <!-- Stripe Payment Button -->
-    <script src="https://checkout.stripe.com/checkout.js" 
-            class="stripe-button"
-            data-key="<%= stripePublicKey %>"
-            data-description="Support this campaign"
-            data-amount="500"
-            data-currency="usd">
-    </script>
-</form>
+    <form action="/donations/<%= campaign.campaign_id %>" method="POST" class="form">
+      <label for="donor_name">Your Name:</label>
+      <input type="text" name="donor_name" id="donor_name" placeholder="e.g. Jane Doe" required>
 
-<a href="/dashboard">Back to Dashboard</a>
+      <label for="donor_email">Your Email:</label>
+      <input type="email" name="donor_email" id="donor_email" placeholder="e.g. jane@example.com" required>
+
+      <label for="amount">Donation Amount ($):</label>
+      <input type="number" name="amount" id="amount" placeholder="e.g. 50" min="1" step="1" required>
+
+      <button type="submit" class="btn">Donate Now 💖</button>
+    </form>
+  </div>
+</section>
+
+<%- include('partials/footer') %>

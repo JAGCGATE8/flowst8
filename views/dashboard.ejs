@@ -1,27 +1,33 @@
-<h2>Welcome, <%= user.full_name %></h2>
-<a href="/campaigns/create">+ Create New Campaign</a>
+<%- include('partials/header', { title: 'Dashboard', user: user }) %>
 
-<h3>Your Campaigns</h3>
-<ul>
-    <% campaigns.forEach(campaign => { %>
-        <li>
-            <strong><%= campaign.title %></strong>
-            <p>Status: <%= campaign.status %></p>
+<div class="dashboard">
+  <h2>Welcome, <%= user.full_name %> 👋</h2>
+  <a href="/campaigns/create"><button class="primary-btn">+ Create New Campaign</button></a>
 
-            <% if (campaign.status === "processing") { %>
-                <p>⏳ AI is generating content... Please refresh the page in a few seconds.</p>
-            <% } else if (campaign.status === "completed") { %>
-                <p><%= campaign.description %></p>
-                <p><strong>AI-Generated Social Media Post:</strong> "<%= campaign.ai_social_post %>"</p>
-                <p>Goal: $<%= campaign.goal_amount %> | Raised: $<%= campaign.total_donations %></p>
-            <% } else { %>
-                <p>⚠️ AI generation failed. Please try again.</p>
-            <% } %>
+  <h3>Your Campaigns</h3>
+  <% if (campaigns.length === 0) { %>
+    <p>No campaigns yet. Create one to start fundraising!</p>
+  <% } else { %>
+    <ul class="campaign-list">
+      <% campaigns.forEach(campaign => { %>
+        <li class="campaign-box">
+          <h4><%= campaign.title %></h4>
+          <p><%= campaign.description %></p>
+          <p><strong>Social Post:</strong> <em><%= campaign.ai_social_post %></em></p>
+          <p>Goal: $<%= campaign.goal_amount %> | Raised: $<%= campaign.total_donations %></p>
 
-            <a href="/campaign/<%= campaign.campaign_id %>">View Public Campaign</a>
-            <a href="/donations/<%= campaign.campaign_id %>">Donate Now</a>
+          <div class="social-buttons">
+            <a href="https://www.facebook.com/sharer/sharer.php?u=https://your-ngrok-url.ngrok.io/share/<%= campaign.campaign_id %>" target="_blank">📘 Facebook</a>
+            <a href="https://twitter.com/intent/tweet?text=<%= encodeURIComponent(campaign.ai_social_post) %>&url=https://your-ngrok-url.ngrok.io/share/<%= campaign.campaign_id %>" target="_blank">🐦 Twitter</a>
+            <a href="https://www.instagram.com/?url=https://your-ngrok-url.ngrok.io/share/<%= campaign.campaign_id %>" target="_blank">📸 Instagram</a>
+            <a href="https://www.tiktok.com/upload?url=https://your-ngrok-url.ngrok.io/share/<%= campaign.campaign_id %>" target="_blank">🎵 TikTok</a>
+          </div>
         </li>
-    <% }) %>
-</ul>
+      <% }) %>
+    </ul>
+  <% } %>
 
-<a href="/logout">Logout</a>
+  <a href="/logout"><button class="secondary-btn">Logout</button></a>
+</div>
+
+<%- include('partials/footer') %>

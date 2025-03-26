@@ -1,13 +1,21 @@
-<h2>Create a New Campaign</h2>
-<form action="/campaigns/create" method="POST">
-    <label>Campaign Title:</label>
-    <input type="text" name="title" required />
+<%- include('partials/header', { title: 'Create Campaign', user }) %>
 
-    <label>Fundraising Goal ($):</label>
-    <input type="number" name="goal_amount" required />
+<section class="form-section">
+  <div class="form-container">
+    <h2>Create a New Campaign</h2>
+    <form action="/campaigns/create" method="POST" class="form">
+      <label for="title">Campaign Title:</label>
+      <input type="text" name="title" id="title" placeholder="e.g. Emergency Fund for Local Family" required>
 
-    <label>Keywords (separate with commas):</label>
-    <input type="text" name="keywords" placeholder="e.g. medical, family, emergency" required />
+      <label for="goal_amount">Fundraising Goal ($):</label>
+      <input type="number" name="goal_amount" id="goal_amount" placeholder="e.g. 5000" min="1" step="1" required>
 
-    <button type="submit">Create Campaign</button>
-</form>
+      <label for="keywords">Keywords (separate with commas):</label>
+      <input type="text" name="keywords" id="keywords" placeholder="e.g. medical, family, emergency" required>
+
+      <button type="submit" class="btn">Launch Campaign 🚀</button>
+    </form>
+  </div>
+</section>
+
+<%- include('partials/footer') %>

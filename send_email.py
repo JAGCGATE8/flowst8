@@ -2,17 +2,18 @@ import os
 import sys
 import pickle
 import base64
-import json
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from google_auth_oauthlib.flow import InstalledAppFlow
+from google.auth.transport.requests import Request
 from googleapiclient.discovery import build
 from googleapiclient.errors import HttpError
 
+# ✅ Gmail API scope
 SCOPES = ['https://www.googleapis.com/auth/gmail.send']
 
 def authenticate_gmail():
-    """Authenticate and create the Gmail API service."""
+    """Authenticate and return Gmail API service."""
     creds = None
     if os.path.exists('token.json'):
         with open('token.json', 'rb') as token:
@@ -31,10 +32,11 @@ def authenticate_gmail():
         service = build('gmail', 'v1', credentials=creds)
         return service
     except HttpError as error:
-        print(f'An error occurred: {error}')
+        print(f'❌ Gmail API Error: {error}')
+        return None
 
 def create_message(sender, to, subject, body):
-    """Create a message for an email."""
+    """Create the email message."""
     message = MIMEMultipart()
     message['to'] = to
     message['from'] = sender
@@ -47,32 +49,38 @@ def create_message(sender, to, subject, body):
     return {'raw': raw_message}
 
 def send_email(service, sender, to, subject, body):
-    """Send an email using the Gmail API."""
+    """Send the email."""
     try:
         message = create_message(sender, to, subject, body)
         message_sent = service.users().messages().send(userId="me", body=message).execute()
-        print(f"Message sent successfully! Message ID: {message_sent['id']}")
+        print(f"Email sent successfully! Message ID: {message_sent['id']}")
     except HttpError as error:
-        print(f"An error occurred while sending the message: {error}")
+        print(f"❌ Error sending email: {error}")
 
+# ✅ Entry point
 if __name__ == '__main__':
-    # Get donor info from Node.js
-    donor_email = sys.argv[1]
-    donor_name = sys.argv[2]
-    amount = sys.argv[3]
+    try:
+        donor_email = sys.argv[1]
+        donor_name = sys.argv[2]
+        amount = sys.argv[3]
 
-    sender = "flowst8funds@gmail.com"
-    subject = "Thank You for Your Donation!"
-    body = f"""Dear {donor_name},
+        sender = "flowst8funds@gmail.com"
+        subject = "Thank You for Your Donation!"
+        body = f"""Dear {donor_name},
 
-    Thank you for your generous donation of ${amount}! Your support helps us continue our efforts, and we are grateful for your contribution.
+Thank you for your generous donation of ${amount} to Flowst8! 🌟
 
-    Best regards,  
-    Flowst8 Team
-    """
+Your support helps bring real change to those who need it most. We appreciate your kindness and generosity.
 
-    # Authenticate Gmail API
-    service = authenticate_gmail()
-    if service:
-        send_email(service, sender, donor_email, subject, body)
+With gratitude,  
+The Flowst8 Team
+"""
 
+        service = authenticate_gmail()
+        if service:
+            send_email(service, sender, donor_email, subject, body)
+        else:
+            print("❌ Gmail service authentication failed.")
+
+    except IndexError:
+        print("❌ Missing arguments: Usage - python send_email.py <email> <name> <amount>")

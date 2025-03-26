@@ -1,49 +1,56 @@
 const express = require("express");
-const stripe = require("stripe")(process.env.STRIPE_SECRET_KEY);
 const db = require("../db");
-const { exec } = require("child_process");
+const { execFile } = require("child_process");
+const path = require("path");
 
 const router = express.Router();
 
-// Route to process donation
-router.post("/process", async (req, res) => {
-    const { campaign_id, donor_name, donor_email, amount, stripeToken } = req.body;
+// ✅ Show donation form
+router.get("/:campaign_id", async (req, res) => {
+    const campaignId = req.params.campaign_id;
 
     try {
-        // Process payment with Stripe
-        const charge = await stripe.charges.create({
-            amount: amount * 100, // Convert dollars to cents
-            currency: "usd",
-            source: stripeToken,
-            description: `Donation for Campaign #${campaign_id}`
+        const [results] = await db.query("SELECT * FROM campaigns WHERE campaign_id = ?", [campaignId]);
+
+        if (!results || results.length === 0) {
+            return res.status(404).send("Campaign not found.");
+        }
+
+        res.render("donate", { campaign: results[0] });
+
+    } catch (err) {
+        console.error("❌ Error loading donation form:", err);
+        res.status(500).send("Error loading donation form.");
+    }
+});
+
+// ✅ Handle donation submission
+router.post("/:campaign_id", async (req, res) => {
+    const campaignId = req.params.campaign_id;
+    const { donor_name, donor_email, amount } = req.body;
+
+    try {
+        // Save donation
+        await db.query(
+            "INSERT INTO donations (campaign_id, donor_name, donor_email, amount) VALUES (?, ?, ?, ?)",
+            [campaignId, donor_name, donor_email, amount]
+        );
+
+        // Send Thank You email
+        const { exec } = require('child_process');
+        exec(`python C:/flowst8/send_email.py ${donor_email} "${donor_name}" ${amount}`, (err, stdout, stderr) => {
+            if (err) {
+                console.error(`❌ Error sending email: ${err}`);
+            } else {
+                console.log(`✅ Email sent: ${stdout}`);
+            }
         });
 
-        // Store successful donation in MySQL
-        db.query("INSERT INTO donations (campaign_id, donor_name, donor_email, amount, payment_status) VALUES (?, ?, ?, ?, ?)",
-        [campaign_id, donor_name, donor_email, amount, "completed"], 
-        (err) => {
-            if (err) return res.send("Error saving donation");
-
-            // Update total donations for the campaign
-            db.query("UPDATE campaigns SET total_donations = total_donations + ? WHERE campaign_id = ?", 
-            [amount, campaign_id]);
-
-            // Call Python script to send email
-            exec(`python3 send_email.py "${donor_email}" "${donor_name}" "${amount}"`, (error, stdout, stderr) => {
-                if (error) {
-                    console.error(`Email sending failed: ${error.message}`);
-                }
-                if (stderr) {
-                    console.error(`Email script error: ${stderr}`);
-                }
-                console.log(`Email script output: ${stdout}`);
-            });
-
-            res.redirect(`/campaign/${campaign_id}`); // Redirect back to campaign page
-        });
-
-    } catch (error) {
-        res.send("Payment failed");
+        // Redirect to Thank You page
+        res.redirect(`/donations/thankyou`);
+    } catch (err) {
+        console.error("❌ Error saving donation:", err);
+        res.status(500).send("Error saving donation.");
     }
 });
 
